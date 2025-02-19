@@ -9,7 +9,7 @@ interface Props {
 const TextInput = ({ setChat }: Props) => {
   const [textInput, setTextInput] = useState("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setTextInput(e.target.value);
   };
   const handleInputSubmit = () => {
@@ -19,14 +19,13 @@ const TextInput = ({ setChat }: Props) => {
 
   return (
     <div className="input-container">
-      <input
-        type="text"
+      <textarea
         name=""
         id="text-input"
         value={textInput}
         onChange={handleInputChange}
         placeholder="Type a message"
-      ></input>
+      ></textarea>
       <button type="submit" className="submit-txt" onClick={handleInputSubmit}>
         <ArrowUp />
       </button>
