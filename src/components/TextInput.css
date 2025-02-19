@@ -1,0 +1,33 @@
+.input-container {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+}
+#text-input {
+  width: 100%;
+  padding: 2rem;
+}
+#text-input:focus {
+  outline: none;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(168, 84, 245, 0.8); /* Purple glow */
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.input-container,
+#text-input {
+  border: none;
+  background-color: white;
+}
+.submit-txt {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  border-radius: 50%;
+  padding: 1rem;
+}
+.submit-txt:hover {
+  background-color: gray;
+}
