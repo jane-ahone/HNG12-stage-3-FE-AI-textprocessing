@@ -40,7 +40,7 @@ const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
       await fetchDetector();
 
       if (text) {
-        const results = detectorRef.current?.detect(text);
+        const results = await detectorRef.current?.detect(text);
         if (results) {
           return {
             status: statusOptions.success,
@@ -74,7 +74,6 @@ const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
 
     //First detect the language
     const languageInfo = await detectLanguage(textInput);
-    console.log(languageInfo);
 
     //Create the message with detection results
 
@@ -87,9 +86,7 @@ const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
           error: languageInfo?.error,
           detectedLanguage: languageInfo?.detectedLanguage,
         },
-        translation: {
-          status: statusOptions.idle,
-        },
+        translation: [],
       },
     };
 

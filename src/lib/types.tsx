@@ -1,23 +1,37 @@
 export enum statusOptions {
-  "idle",
-  "loading",
-  "success",
-  "error",
+  idle = "idle",
+  loading = "loading",
+  success = "success",
+  error = "error",
 }
 
 export interface LanguageDetectorCapabilities {
   available: "no" | "readily" | "afterDownload";
 }
+type LanguageDetectionResult = {
+  confidence: number;
+  detectedLanguage: string;
+};
+
+type TranslationResult = {
+  status: statusOptions;
+  error?: string;
+  text?: string;
+  language: {
+    detected: string;
+    target: string;
+  };
+};
 
 export interface LanguageDetector {
   ready?: Promise<void>;
   destroy: () => void;
-  detect: (text: string) => void;
+  detect: (text: string) => LanguageDetectionResult[];
 }
 export interface LanguageTranslator {
   ready?: Promise<void>;
   destroy: () => void;
-  translate: (text: string) => void;
+  translate: (text: string) => string;
 }
 export interface ChatMessage {
   id: string;
@@ -28,10 +42,6 @@ export interface ChatMessage {
       error?: string;
       detectedLanguage?: string;
     };
-    translation: {
-      status: statusOptions;
-      error?: string;
-      translations?: string;
-    };
+    translation: TranslationResult[];
   };
 }

@@ -10,7 +10,6 @@ function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMsgId, setCurrentMsgId] = useState<string>("");
 
-  console.log(messages);
   return (
     <>
       <header>
@@ -32,6 +31,7 @@ function App() {
               </p>
               {message.text.length > 150 ? <button>Summarise</button> : null}
               <TextTranslate
+                message={message}
                 msgId={currentMsgId}
                 messages={messages}
                 setMessages={setMessages}

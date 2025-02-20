@@ -56,6 +56,7 @@ export async function initializeLanguageTranslator(
   );
   let translator: LanguageTranslator | null;
   if (canTranslate === "no") {
+    console.error("Translation not possible in this browser");
     return null;
   }
   if (canTranslate === "readily") {
@@ -63,13 +64,13 @@ export async function initializeLanguageTranslator(
       sourceLanguage,
       targetLanguage,
     });
-    return translator;
   } else {
+    console.log("Translator download in progress");
     translator = await self.ai.translator.create({
       sourceLanguage: sourceLanguage,
       targetLanguage: targetLanguage,
     });
-
-    return translator;
+    await translator?.ready;
   }
+  return translator;
 }

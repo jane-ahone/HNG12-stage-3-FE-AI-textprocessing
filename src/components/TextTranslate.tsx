@@ -1,10 +1,12 @@
 import { useState, useRef, ChangeEvent, useEffect } from "react";
-import { ChatMessage, LanguageTranslator } from "../lib/types";
+import { ChatMessage, LanguageTranslator, statusOptions } from "../lib/types";
 import { initializeLanguageTranslator } from "../lib/helperFunctions";
+import TextBubble from "./TextBubble";
 
 // List of available language translations
 const translationLanguages = {
   humanReadable: [
+    "Pick a language",
     "English",
     "Portuguese ",
     "Spanish ",
@@ -12,18 +14,25 @@ const translationLanguages = {
     "Turkish ",
     "French ",
   ],
-  languageCode: ["en", "pt", "es", "ru", "tr", "fr"],
+  languageCode: ["", "en", "pt", "es", "ru", "tr", "fr"],
 };
 
 interface Props {
   msgId: string;
   messages: ChatMessage[];
+  message: ChatMessage;
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   index: number;
 }
 
-const TextTranslate = ({ msgId, messages, setMessages, index }: Props) => {
-  const [textTranslated, setTextTranslated] = useState<string[]>([]);
+const TextTranslate = ({
+  msgId,
+  messages,
+  message,
+  setMessages,
+  index,
+}: Props) => {
+  // const [textTranslated, setTextTranslated] = useState<string[]>([]);
   const [targetTransLanguage, setTargetTransLanguage] = useState<string>("");
   const translatorRef = useRef<LanguageTranslator | null>(null);
 
@@ -34,8 +43,22 @@ const TextTranslate = ({ msgId, messages, setMessages, index }: Props) => {
     setTargetTransLanguage(e.target.value);
   };
 
+  const fetchTranslator = async (detectedLanguage: string) => {
+    let translator: LanguageTranslator | null;
+    try {
+      translator = await initializeLanguageTranslator(
+        detectedLanguage,
+        targetTransLanguage
+      );
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to initialise translator");
+    }
+    return translator;
+  };
+
   useEffect(() => {
-    const fetchTranslator = async () => {
+    const TranslateText = async () => {
       try {
         const message = messages.find((message) => message.id === msgId);
 
@@ -54,9 +77,9 @@ const TextTranslate = ({ msgId, messages, setMessages, index }: Props) => {
         );
 
         // Attempt to initialize the translator
-        translatorRef.current = await initializeLanguageTranslator(
-          message.status.languageDetection.detectedLanguage,
-          targetTransLanguage
+
+        translatorRef.current = await fetchTranslator(
+          message.status.languageDetection.detectedLanguage
         );
 
         if (!translatorRef.current) {
@@ -68,7 +91,7 @@ const TextTranslate = ({ msgId, messages, setMessages, index }: Props) => {
 
         // Attempt translation
         try {
-          const translatedText = await translatorRef.current.translate(
+          const translatedText: string = await translatorRef.current.translate(
             message.text
           );
           console.log("Translation successful:", translatedText);
@@ -78,9 +101,21 @@ const TextTranslate = ({ msgId, messages, setMessages, index }: Props) => {
               m.id === msgId
                 ? {
                     ...m,
-                    translation: {
-                      status: "success",
-                      translations: translatedText,
+                    status: {
+                      ...m.status,
+                      translation: [
+                        ...m.status.translation,
+                        {
+                          status: statusOptions.success,
+                          text: translatedText,
+                          language: {
+                            detected:
+                              m.status.languageDetection.detectedLanguage ||
+                              "unknown",
+                            target: targetTransLanguage,
+                          },
+                        },
+                      ],
                     },
                   }
                 : m
@@ -93,10 +128,17 @@ const TextTranslate = ({ msgId, messages, setMessages, index }: Props) => {
               m.id === msgId
                 ? {
                     ...m,
-                    translation: {
-                      status: "success",
-                      error: translationError,
-                    },
+                    translation: [
+                      ...m.status.translation,
+                      {
+                        status: "error",
+                        error: translationError,
+                        language: {
+                          detected: m.status.languageDetection.detectedLanguage,
+                          target: targetTransLanguage,
+                        },
+                      },
+                    ],
                   }
                 : m
             )
@@ -104,16 +146,19 @@ const TextTranslate = ({ msgId, messages, setMessages, index }: Props) => {
         }
       } catch (error) {
         console.error(
-          "An unexpected error occurred in fetchTranslator:",
+          "An unexpected error occurred in fetching Translator:",
           error
         );
       }
     };
 
-    fetchTranslator();
+    TranslateText();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetTransLanguage]);
 
-  return (
+  console.log(messages);
+
+  return message.status?.languageDetection?.detectedLanguage ? (
     <div>
       Translate to
       <select
@@ -127,18 +172,25 @@ const TextTranslate = ({ msgId, messages, setMessages, index }: Props) => {
           <option
             key={translationLanguages.languageCode[i]}
             value={translationLanguages.languageCode[i]}
+            disabled={
+              translationLanguages.languageCode[i] ==
+              message.status.languageDetection.detectedLanguage
+            }
           >
             {language}
           </option>
         ))}
       </select>
-      <p>
-        Text translated to {targetTransLanguage}:
-        {messages[index].status.translation.translations
-          ? messages[index].status.translation.translations
-          : ""}
-      </p>
+      {messages[index].status.translation.map((translation, index) => (
+        <TextBubble>
+          Text translated to {""}{" "}
+          {message.status.translation[index].language.target}: {"  "}
+          {translation.text ? translation.text : ""}
+        </TextBubble>
+      ))}
     </div>
+  ) : (
+    <p>Detection failure. Translation not possible</p>
   );
 };
 
