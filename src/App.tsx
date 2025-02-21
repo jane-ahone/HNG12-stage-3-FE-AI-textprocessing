@@ -16,7 +16,7 @@ function App() {
         <h1>Chat Section</h1>
       </header>
       <main>
-        <div className="chat-display-cntr">
+        <div className="chat-display-cntr" aria-live="polite">
           {messages.map((message, index) => (
             <>
               <TextBubble>{message.text}</TextBubble>{" "}

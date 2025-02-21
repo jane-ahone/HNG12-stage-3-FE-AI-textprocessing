@@ -100,13 +100,20 @@ const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
   return (
     <div className="input-container">
       <textarea
+        autoFocus
         name=""
+        aria-label="Type a message"
         id="text-input"
         value={textInput}
         onChange={handleInputChange}
-        placeholder="Type a message"
+        placeholder="Hello, how are you doing?"
       ></textarea>
-      <button type="submit" className="submit-txt" onClick={handleInputSubmit}>
+      <button
+        type="submit"
+        className="submit-txt"
+        aria-label="Submit message"
+        onClick={handleInputSubmit}
+      >
         <ArrowUp />
       </button>
     </div>
