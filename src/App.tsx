@@ -11,42 +11,55 @@ function App() {
   const [currentMsgId, setCurrentMsgId] = useState<string>("");
 
   return (
-    <>
+    <div role="application" aria-label="Chat-Application">
       <header>
         <h1>Chat Section</h1>
       </header>
       <main>
-        <div className="chat-display-cntr" aria-live="polite">
+        <div
+          className="chat-display-cntr"
+          aria-label="Chat messages"
+          aria-live="polite"
+        >
           {messages.map((message, index) => (
-            <>
-              <TextBubble>{message.text}</TextBubble>{" "}
-              <p>
-                Language detected:
-                {message.status.languageDetection.detectedLanguage
-                  ? languageTagToHumanReadable(
-                      message.status.languageDetection.detectedLanguage,
-                      "en"
-                    )
-                  : message.status.languageDetection.error}
-              </p>
-              {message.text.length > 150 ? <button>Summarise</button> : null}
+            <article key={message.id} aria-label={`Message ${index + 1}`}>
+              <TextBubble aria-label={`User message: ${message.text}`}>
+                {message.text}
+              </TextBubble>{" "}
+              <TextBubble receive={true} aria-label="Language detection result">
+                <span className="detection-output">Language detected </span>
+                <p
+                  className="detected-language"
+                  aria-label="Detected language"
+                  aria-live="polite"
+                >
+                  {message.status.languageDetection.detectedLanguage
+                    ? languageTagToHumanReadable(
+                        message.status.languageDetection.detectedLanguage,
+                        "en"
+                      )
+                    : message.status.languageDetection.error ||
+                      "Detection failed"}
+                </p>
+              </TextBubble>
               <TextTranslate
                 message={message}
                 msgId={currentMsgId}
                 messages={messages}
                 setMessages={setMessages}
                 index={index}
+                aria-label={`Translation controls for message ${index + 1}`}
               />
-            </>
+            </article>
           ))}
         </div>
         <TextInput
-          messages={messages}
           setMessages={setMessages}
           setCurrentMsgId={setCurrentMsgId}
+          aria-label="Message input"
         />
       </main>
-    </>
+    </div>
   );
 }
 

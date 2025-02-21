@@ -1,11 +1,10 @@
 import { ArrowUp } from "lucide-react";
 import "./TextInput.css";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChatMessage, LanguageDetector, statusOptions } from "../lib/types";
 import { initializeLanguageDetector } from "../lib/helperFunctions";
 
 interface Props {
-  messages: ChatMessage[];
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   setCurrentMsgId: React.Dispatch<React.SetStateAction<string>>;
 }
@@ -18,6 +17,8 @@ type DetectionResult = {
 
 const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
   const [textInput, setTextInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const detectorRef = useRef<LanguageDetector | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -31,16 +32,18 @@ const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
     if (detectorRef.current) {
       console.log("Language detector initialized successfully.");
     } else {
+      setError("Failed to initialize language detector");
       throw new Error("Language detector is not available");
     }
   };
 
   // Detect language function
+  useEffect(() => {
+    fetchDetector();
+  }, []);
 
   async function detectLanguage(text: string): Promise<DetectionResult> {
     try {
-      await fetchDetector();
-
       if (text) {
         const results = await detectorRef.current?.detect(text);
         if (results) {
@@ -69,49 +72,62 @@ const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
       };
     }
   }
-
   const handleInputSubmit = async () => {
-    const msgId = crypto.randomUUID();
-    setCurrentMsgId(msgId);
+    if (!textInput.trim()) return;
 
-    //First detect the language
-    const languageInfo = await detectLanguage(textInput);
+    setIsLoading(true);
+    setError(null);
 
-    //Create the message with detection results
+    try {
+      const msgId = crypto.randomUUID();
+      setCurrentMsgId(msgId);
 
-    const newMessage: ChatMessage = {
-      id: msgId,
-      text: textInput,
-      status: {
-        languageDetection: {
-          status: languageInfo?.status,
-          error: languageInfo?.error,
-          detectedLanguage: languageInfo?.detectedLanguage,
+      const languageInfo = await detectLanguage(textInput);
+
+      const newMessage: ChatMessage = {
+        id: msgId,
+        text: textInput.trim(),
+        status: {
+          languageDetection: {
+            status: languageInfo.status,
+            detectedLanguage: languageInfo.detectedLanguage,
+          },
+          translation: [],
         },
-        translation: [],
-      },
-    };
+      };
 
-    //save new message
-    setMessages((prev) => [...prev, newMessage]);
-    setTextInput("");
+      setMessages((prev) => [...prev, newMessage]);
+      setTextInput("");
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Failed to send message"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="input-container">
       <textarea
         autoFocus
-        name=""
+        name="message"
         aria-label="Type a message"
         id="text-input"
         value={textInput}
         onChange={handleInputChange}
         placeholder="Hello, how are you doing?"
-      ></textarea>
+      ></textarea>{" "}
+      {error && (
+        <div id="error-message" className="error-message" role="alert">
+          {error}
+        </div>
+      )}
       <button
         type="submit"
         className="submit-txt"
         aria-label="Submit message"
+        disabled={isLoading || textInput.length <= 0}
         onClick={handleInputSubmit}
       >
         <ArrowUp />

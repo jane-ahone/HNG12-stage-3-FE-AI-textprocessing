@@ -1,5 +1,6 @@
 .message-cntr {
   display: flex;
+  justify-content: flex-end;
   margin-bottom: 0.5rem;
 }
 .text {
@@ -7,13 +8,15 @@
   border-radius: 1rem;
   padding: 1rem;
   width: fit-content;
+  background-color: var(--purple);
+  color: white;
 }
 
 .receiver-cntr {
-  justify-self: flex-end;
+  justify-self: flex-start;
 }
 
 .receiver {
-  background-color: var(--purple);
-  color: white;
+  background-color: white;
+  color: black;
 }

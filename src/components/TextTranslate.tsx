@@ -34,7 +34,6 @@ const TextTranslate = ({
   setMessages,
   index,
 }: Props) => {
-  // const [textTranslated, setTextTranslated] = useState<string[]>([]);
   const [targetTransLanguage, setTargetTransLanguage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const translatorRef = useRef<LanguageTranslator | null>(null);
@@ -63,10 +62,11 @@ const TextTranslate = ({
   useEffect(() => {
     const translateText = async () => {
       try {
+        // Find message that needs to be translated
         const message = messages.find((message) => message.id === msgId);
 
-        if (!message) {
-          console.error("Message not found.");
+        if (!message || !targetTransLanguage) {
+          console.error("Message not found or no target language found.");
           return;
         }
 
@@ -78,13 +78,45 @@ const TextTranslate = ({
         console.log(
           `Initializing translator for language: ${message.status.languageDetection.detectedLanguage}`
         );
-        setIsLoading(true); // Start loadintt
+        setIsLoading(true);
 
         // Attempt to initialize the translator
 
         translatorRef.current = await fetchTranslator(
           message.status.languageDetection.detectedLanguage
         );
+
+        console.log("Translator", translatorRef.current);
+
+        if (translatorRef.current == null) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === msgId
+                ? {
+                    ...m,
+                    status: {
+                      ...m.status,
+                      translation: [
+                        ...m.status.translation,
+                        {
+                          status: statusOptions.error,
+                          error: "Translation not possible on device",
+                          text: "",
+                          language: {
+                            detected:
+                              m.status.languageDetection.detectedLanguage ||
+                              "unknown",
+                            target: targetTransLanguage,
+                          },
+                        },
+                      ],
+                    },
+                  }
+                : m
+            )
+          );
+          return null;
+        }
 
         if (!translatorRef.current) {
           console.error("Failed to initialize language translator.");
@@ -163,46 +195,66 @@ const TextTranslate = ({
   }, [targetTransLanguage]);
 
   console.log(messages);
+  console.log("Target lang", targetTransLanguage);
 
   return message.status?.languageDetection?.detectedLanguage ? (
     <div>
-      <label htmlFor="language-select">Translate Text to</label>
-      <select
-        name=""
-        id="language-select"
-        onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-          handleOptionChange(event, setTargetTransLanguage)
-        }
-      >
-        {translationLanguages.map((language) => (
-          <option
-            key={language.humanReadable}
-            value={language.languageCode}
-            disabled={
-              language.languageCode ==
-              message.status.languageDetection.detectedLanguage
-            }
-          >
-            {language.humanReadable}
-          </option>
-        ))}
-      </select>
-      {isLoading ? <p className="loading-text">Translating...</p> : null}
+      <div className="translate-options-cntr">
+        <label className="language-select-label" htmlFor="language-select">
+          Translate text to
+        </label>
+        <select
+          name=""
+          id="language-select"
+          onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+            handleOptionChange(event, setTargetTransLanguage)
+          }
+        >
+          {translationLanguages.map((language) => (
+            <option
+              key={language.humanReadable}
+              value={language.languageCode}
+              disabled={
+                language.languageCode ==
+                message.status.languageDetection.detectedLanguage
+              }
+            >
+              {language.humanReadable}
+            </option>
+          ))}
+        </select>
+        {isLoading ? <p className="loading-text">Translating...</p> : null}
+      </div>
+
       <div className="translate-output-cntr">
-        {messages[index].status.translation.map((translation, index) => (
-          <TextBubble key={index} receive={true}>
-            {languageTagToHumanReadable(
-              message.status.translation[index].language.target,
-              "en"
+        {messages[index].status.translation.map((translation, idx) => (
+          <TextBubble key={idx} receive={true}>
+            {translation.status === "error" ? (
+              <span
+                className="error-text"
+                aria-live="polite"
+                aria-label="translation-error-message"
+              >
+                ⚠️ {translation.error}
+              </span>
+            ) : (
+              <>
+                {languageTagToHumanReadable(translation.language.target, "en")}:{" "}
+                {translation.text ? translation.text : ""}
+              </>
             )}
-            : {"  "}
-            {translation.text ? translation.text : ""}
           </TextBubble>
         ))}
       </div>
     </div>
   ) : (
-    <p>Detection failure. Translation not possible</p>
+    <p
+      className="error-text"
+      aria-live="polite"
+      aria-label="language-detection-fail"
+    >
+      Language detection failure. Translation not possible
+    </p>
   );
 };
 

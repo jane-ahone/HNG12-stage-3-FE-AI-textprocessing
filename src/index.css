@@ -6,11 +6,14 @@
   box-sizing: border-box;
 }
 :root {
-  --light-purple: #f5f0fa;
-  --purple: #a854f5;
+  --light-purple: #e0dae5;
+  --purple: #6f33a6;
   --dark-gray: #333333;
 }
 body,
 #root {
   min-height: 100vh;
+}
+textarea {
+  resize: none;
 }

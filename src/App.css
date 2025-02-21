@@ -2,13 +2,13 @@ header {
   background-color: white;
 }
 header h1 {
-  padding: 2rem;
+  padding: 1.2rem;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   margin-left: 2rem;
 }
 main {
-  background-color: var(--light-purple);
+  background: linear-gradient(var(--light-purple), #9198e5);
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 5rem);
@@ -20,4 +20,11 @@ main {
 .input-container {
   flex-grow: 0;
   flex-shrink: 0;
+}
+.detection-output {
+  font-size: 0.8rem;
+  color: #4b4747;
+}
+.detected-language {
+  font-weight: 600;
 }
