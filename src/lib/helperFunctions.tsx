@@ -1,9 +1,46 @@
 import {
-  LanguageDetector,
   LanguageDetectorCapabilities,
+  LanguageDetector,
   LanguageTranslator,
 } from "./types";
 
+// First, let's define the interfaces for the AI API
+interface AILanguageDetector {
+  capabilities(): Promise<LanguageDetectorCapabilities>;
+  create(options?: {
+    monitor?: (target: EventTarget) => void;
+  }): Promise<LanguageDetector>;
+}
+
+interface AITranslator {
+  capabilities(): Promise<TranslatorCapabilities>;
+  create(options: {
+    sourceLanguage: string;
+    targetLanguage: string;
+  }): Promise<LanguageTranslator>;
+}
+
+interface AIInterface {
+  languageDetector: AILanguageDetector;
+  translator: AITranslator;
+}
+
+// Extend the Window interface to include our AI property
+declare global {
+  interface Window {
+    ai: AIInterface;
+  }
+}
+
+// Your existing types (assumed from usage)
+interface TranslatorCapabilities {
+  languagePairAvailable(
+    source: string,
+    target: string
+  ): "no" | "readily" | "after-download";
+}
+
+// Your existing functions with proper typing
 export const languageTagToHumanReadable = (
   languageTag: string,
   targetLanguage: string
@@ -17,7 +54,6 @@ export const languageTagToHumanReadable = (
 export async function initializeLanguageDetector(): Promise<LanguageDetector | null> {
   const languageDetectorCapabilities: LanguageDetectorCapabilities =
     await self.ai.languageDetector.capabilities();
-
   const canDetect = languageDetectorCapabilities.available;
   let detector: LanguageDetector | null = null;
 
@@ -31,9 +67,13 @@ export async function initializeLanguageDetector(): Promise<LanguageDetector | n
   } else {
     detector = await self.ai.languageDetector.create({
       monitor: (m: EventTarget) => {
-        m.addEventListener("downloadprogress", (e: ProgressEvent) => {
-          console.log(`Downloaded ${e.loaded} of ${e.total} bytes.`);
-        });
+        // Fixed: Use type assertion to handle the event properly
+        m.addEventListener("downloadprogress", ((e: Event) => {
+          const progressEvent = e as ProgressEvent<EventTarget>;
+          console.log(
+            `Downloaded ${progressEvent.loaded} of ${progressEvent.total} bytes.`
+          );
+        }) as EventListener);
       },
     });
 
@@ -41,7 +81,6 @@ export async function initializeLanguageDetector(): Promise<LanguageDetector | n
       await detector.ready;
     }
   }
-
   return detector;
 }
 
@@ -55,10 +94,12 @@ export async function initializeLanguageTranslator(
     targetLanguage
   );
   let translator: LanguageTranslator | null;
+
   if (canTranslate === "no") {
     console.error("Translation not possible in this browser");
     return null;
   }
+
   if (canTranslate === "readily") {
     translator = await self.ai.translator.create({
       sourceLanguage,

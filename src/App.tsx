@@ -28,11 +28,7 @@ function App() {
               </TextBubble>{" "}
               <TextBubble receive={true} aria-label="Language detection result">
                 <span className="detection-output">Language detected </span>
-                <p
-                  className="detected-language"
-                  aria-label="Detected language"
-                  aria-live="polite"
-                >
+                <p className="detected-language">
                   {message.status.languageDetection.detectedLanguage
                     ? languageTagToHumanReadable(
                         message.status.languageDetection.detectedLanguage,

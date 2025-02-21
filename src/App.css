@@ -11,7 +11,7 @@ main {
   background: linear-gradient(var(--light-purple), #9198e5);
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 5rem);
+  min-height: calc(100vh - 3.9rem);
 }
 .chat-display-cntr {
   padding: 3rem;

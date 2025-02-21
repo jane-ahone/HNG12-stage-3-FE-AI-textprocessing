@@ -1,7 +1,9 @@
 .message-cntr {
   display: flex;
   justify-content: flex-end;
+
   margin-bottom: 0.5rem;
+  word-break: break-all;
 }
 .text {
   background-color: white;
@@ -10,6 +12,14 @@
   width: fit-content;
   background-color: var(--purple);
   color: white;
+}
+.sender {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-items: end;
+}
+.sender-text {
+  grid-column: 2;
 }
 
 .receiver-cntr {

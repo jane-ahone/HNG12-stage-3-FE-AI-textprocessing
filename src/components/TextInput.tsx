@@ -108,31 +108,43 @@ const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
   };
 
   return (
-    <div className="input-container">
-      <textarea
-        autoFocus
-        name="message"
-        aria-label="Type a message"
-        id="text-input"
-        value={textInput}
-        onChange={handleInputChange}
-        placeholder="Hello, how are you doing?"
-      ></textarea>{" "}
+    <>
+      {textInput.length <= 0 ? (
+        <p
+          role="alert"
+          aria-live="polite"
+          aria-label="text-input-error-message"
+          className="text-input-error-message"
+        >
+          Empty field. Fill something in
+        </p>
+      ) : null}
+      <div className="input-container">
+        <textarea
+          autoFocus
+          name="message"
+          aria-label="Type a message"
+          id="text-input"
+          value={textInput}
+          onChange={handleInputChange}
+          placeholder="Hello, how are you doing?"
+        />
+        <button
+          type="submit"
+          className="submit-txt"
+          aria-label="Submit text"
+          disabled={isLoading || textInput.length <= 0}
+          onClick={handleInputSubmit}
+        >
+          <ArrowUp size={20} aria-label="submit-icon" />
+        </button>
+      </div>
       {error && (
         <div id="error-message" className="error-message" role="alert">
           {error}
         </div>
       )}
-      <button
-        type="submit"
-        className="submit-txt"
-        aria-label="Submit message"
-        disabled={isLoading || textInput.length <= 0}
-        onClick={handleInputSubmit}
-      >
-        <ArrowUp />
-      </button>
-    </div>
+    </>
   );
 };
 

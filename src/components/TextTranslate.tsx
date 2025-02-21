@@ -12,7 +12,7 @@ import "./TextTranslate.css";
 const translationLanguages = [
   { humanReadable: "Pick a language", languageCode: "" },
   { humanReadable: "English", languageCode: "en" },
-  { humanReadable: "Portugues", languageCode: "pt" },
+  { humanReadable: "Portuguese", languageCode: "pt" },
   { humanReadable: "Spanish", languageCode: "es" },
   { humanReadable: "Russian", languageCode: "ru" },
   { humanReadable: "Turkish", languageCode: "tr" },
@@ -79,14 +79,13 @@ const TextTranslate = ({
           `Initializing translator for language: ${message.status.languageDetection.detectedLanguage}`
         );
         setIsLoading(true);
+        console.log(translatorRef.current);
 
         // Attempt to initialize the translator
 
         translatorRef.current = await fetchTranslator(
           message.status.languageDetection.detectedLanguage
         );
-
-        console.log("Translator", translatorRef.current);
 
         if (translatorRef.current == null) {
           setMessages((prev) =>
@@ -130,7 +129,7 @@ const TextTranslate = ({
           const translatedText: string = await translatorRef.current.translate(
             message.text
           );
-          console.log("Translation successful:", translatedText);
+          console.log("Translation successful:");
 
           setMessages((prev) =>
             prev.map((m) =>
@@ -194,17 +193,15 @@ const TextTranslate = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetTransLanguage]);
 
-  console.log(messages);
-  console.log("Target lang", targetTransLanguage);
-
   return message.status?.languageDetection?.detectedLanguage ? (
     <div>
-      <div className="translate-options-cntr">
+      <div className="translate-options-cntr" aria-busy={isLoading}>
         <label className="language-select-label" htmlFor="language-select">
           Translate text to
         </label>
         <select
           name=""
+          disabled={message.id != msgId}
           id="language-select"
           onChange={(event: ChangeEvent<HTMLSelectElement>) =>
             handleOptionChange(event, setTargetTransLanguage)
@@ -226,7 +223,11 @@ const TextTranslate = ({
         {isLoading ? <p className="loading-text">Translating...</p> : null}
       </div>
 
-      <div className="translate-output-cntr">
+      <div
+        className="translate-output-cntr"
+        aria-label="Translation results"
+        aria-live="polite"
+      >
         {messages[index].status.translation.map((translation, idx) => (
           <TextBubble key={idx} receive={true}>
             {translation.status === "error" ? (
