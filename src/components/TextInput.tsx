@@ -35,6 +35,8 @@ const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
     }
   };
 
+  // Detect language function
+
   async function detectLanguage(text: string): Promise<DetectionResult> {
     try {
       await fetchDetector();

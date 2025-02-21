@@ -45,3 +45,8 @@ export interface ChatMessage {
     translation: TranslationResult[];
   };
 }
+
+export interface LoadingStates {
+  languageDetection: statusOptions;
+  languageTranslation: statusOptions;
+}

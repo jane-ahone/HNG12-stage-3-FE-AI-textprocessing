@@ -1,21 +1,23 @@
 import { useState, useRef, ChangeEvent, useEffect } from "react";
 import { ChatMessage, LanguageTranslator, statusOptions } from "../lib/types";
-import { initializeLanguageTranslator } from "../lib/helperFunctions";
+import {
+  initializeLanguageTranslator,
+  languageTagToHumanReadable,
+} from "../lib/helperFunctions";
 import TextBubble from "./TextBubble";
+import "./TextTranslate.css";
 
 // List of available language translations
-const translationLanguages = {
-  humanReadable: [
-    "Pick a language",
-    "English",
-    "Portuguese ",
-    "Spanish ",
-    "Russian ",
-    "Turkish ",
-    "French ",
-  ],
-  languageCode: ["", "en", "pt", "es", "ru", "tr", "fr"],
-};
+
+const translationLanguages = [
+  { humanReadable: "Pick a language", languageCode: "" },
+  { humanReadable: "English", languageCode: "en" },
+  { humanReadable: "Portugues", languageCode: "pt" },
+  { humanReadable: "Spanish", languageCode: "es" },
+  { humanReadable: "Russian", languageCode: "ru" },
+  { humanReadable: "Turkish", languageCode: "tr" },
+  { humanReadable: "French", languageCode: "fr" },
+];
 
 interface Props {
   msgId: string;
@@ -34,6 +36,7 @@ const TextTranslate = ({
 }: Props) => {
   // const [textTranslated, setTextTranslated] = useState<string[]>([]);
   const [targetTransLanguage, setTargetTransLanguage] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const translatorRef = useRef<LanguageTranslator | null>(null);
 
   const handleOptionChange = (
@@ -58,7 +61,7 @@ const TextTranslate = ({
   };
 
   useEffect(() => {
-    const TranslateText = async () => {
+    const translateText = async () => {
       try {
         const message = messages.find((message) => message.id === msgId);
 
@@ -75,6 +78,7 @@ const TextTranslate = ({
         console.log(
           `Initializing translator for language: ${message.status.languageDetection.detectedLanguage}`
         );
+        setIsLoading(true); // Start loadintt
 
         // Attempt to initialize the translator
 
@@ -131,7 +135,7 @@ const TextTranslate = ({
                     translation: [
                       ...m.status.translation,
                       {
-                        status: "error",
+                        status: statusOptions.error,
                         error: translationError,
                         language: {
                           detected: m.status.languageDetection.detectedLanguage,
@@ -149,10 +153,12 @@ const TextTranslate = ({
           "An unexpected error occurred in fetching Translator:",
           error
         );
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    TranslateText();
+    translateText();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetTransLanguage]);
 
@@ -160,34 +166,40 @@ const TextTranslate = ({
 
   return message.status?.languageDetection?.detectedLanguage ? (
     <div>
-      Translate to
+      <label htmlFor="language-select">Translate Text to</label>
       <select
         name=""
-        id=""
+        id="language-select"
         onChange={(event: ChangeEvent<HTMLSelectElement>) =>
           handleOptionChange(event, setTargetTransLanguage)
         }
       >
-        {translationLanguages.humanReadable.map((language, i) => (
+        {translationLanguages.map((language) => (
           <option
-            key={translationLanguages.languageCode[i]}
-            value={translationLanguages.languageCode[i]}
+            key={language.humanReadable}
+            value={language.languageCode}
             disabled={
-              translationLanguages.languageCode[i] ==
+              language.languageCode ==
               message.status.languageDetection.detectedLanguage
             }
           >
-            {language}
+            {language.humanReadable}
           </option>
         ))}
       </select>
-      {messages[index].status.translation.map((translation, index) => (
-        <TextBubble>
-          Text translated to {""}{" "}
-          {message.status.translation[index].language.target}: {"  "}
-          {translation.text ? translation.text : ""}
-        </TextBubble>
-      ))}
+      {isLoading ? <p className="loading-text">Translating...</p> : null}
+      <div className="translate-output-cntr">
+        {messages[index].status.translation.map((translation, index) => (
+          <TextBubble key={index} receive={true}>
+            {languageTagToHumanReadable(
+              message.status.translation[index].language.target,
+              "en"
+            )}
+            : {"  "}
+            {translation.text ? translation.text : ""}
+          </TextBubble>
+        ))}
+      </div>
     </div>
   ) : (
     <p>Detection failure. Translation not possible</p>

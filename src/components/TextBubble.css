@@ -1,7 +1,19 @@
 .message-cntr {
-  background-color: white;
-  padding: 1rem;
-  border-radius: 1rem;
-  width: fit-content;
+  display: flex;
   margin-bottom: 0.5rem;
+}
+.text {
+  background-color: white;
+  border-radius: 1rem;
+  padding: 1rem;
+  width: fit-content;
+}
+
+.receiver-cntr {
+  justify-self: flex-end;
+}
+
+.receiver {
+  background-color: var(--purple);
+  color: white;
 }
