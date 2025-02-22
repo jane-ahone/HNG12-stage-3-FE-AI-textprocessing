@@ -44,7 +44,7 @@
   background-color: #8080807a;
 }
 
-.text-input-error-message {
+.error-message {
   margin: 1rem;
   color: red;
   text-align: right;

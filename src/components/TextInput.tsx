@@ -3,7 +3,7 @@ import "./TextInput.css";
 import { useEffect, useRef, useState } from "react";
 import { ChatMessage, LanguageDetector, statusOptions } from "../lib/types";
 import { initializeLanguageDetector } from "../lib/helperFunctions";
-
+import { z, ZodError } from "zod";
 interface Props {
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   setCurrentMsgId: React.Dispatch<React.SetStateAction<string>>;
@@ -14,6 +14,8 @@ type DetectionResult = {
   error?: string | undefined;
   detectedLanguage?: string | undefined;
 };
+
+const Input = z.string().min(1);
 
 const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
   const [textInput, setTextInput] = useState("");
@@ -37,7 +39,6 @@ const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
     }
   };
 
-  // Detect language function
   useEffect(() => {
     fetchDetector();
   }, []);
@@ -73,7 +74,17 @@ const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
     }
   }
   const handleInputSubmit = async () => {
-    if (!textInput.trim()) return;
+    try {
+      Input.parse(textInput);
+    } catch (error) {
+      console.log(error);
+      setError(
+        error instanceof ZodError
+          ? error.issues[0].message
+          : `Unexpected error:${error}`
+      );
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -106,19 +117,15 @@ const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
       setIsLoading(false);
     }
   };
+  console.log("Application errors", error);
 
   return (
     <>
-      {textInput.length <= 0 ? (
-        <p
-          role="alert"
-          aria-live="polite"
-          aria-label="text-input-error-message"
-          className="text-input-error-message"
-        >
-          Empty field. Fill something in
-        </p>
-      ) : null}
+      {error && (
+        <div id="error-message" className="error-message" role="alert">
+          {error}
+        </div>
+      )}
       <div className="input-container">
         <textarea
           autoFocus
@@ -133,17 +140,12 @@ const TextInput = ({ setMessages, setCurrentMsgId }: Props) => {
           type="submit"
           className="submit-txt"
           aria-label="Submit text"
-          disabled={isLoading || textInput.length <= 0}
+          disabled={isLoading}
           onClick={handleInputSubmit}
         >
           <ArrowUp size={20} aria-label="submit-icon" />
         </button>
       </div>
-      {error && (
-        <div id="error-message" className="error-message" role="alert">
-          {error}
-        </div>
-      )}
     </>
   );
 };
